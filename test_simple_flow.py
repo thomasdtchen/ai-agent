@@ -40,18 +40,13 @@ def energy_cost_tool(state: AgentState):
 # ------------------------------
 def where_to_go(state: AgentState):
     """根据最后一条消息，判断下一步去哪：
-    - 如果用户询问电费相关或Agent提到了电费估算，就去 Tool 节点
+    - 如果 Agent 提到了「需要调用电费估算工具」，就去 Tool 节点
     - 否则直接结束对话
     """
-    # 检查所有消息，不仅仅是最后一条
-    all_messages = " ".join([msg.content.lower() for msg in state["messages"]])
-    
-    # 检查是否包含电费相关的关键词
-    electricity_keywords = ["电费", "energy cost", "electricity bill", "electricity", "bill", "save", "saving", "cost"]
-    
-    for keyword in electricity_keywords:
-        if keyword in all_messages:
-            return "call_tool"  # 去工具节点
+    last_message = state["messages"][-1].content.lower()
+    # Let's make the condition more flexible to test the tool
+    if "电费" in last_message or "energy cost" in last_message or "electricity" in last_message or "bill" in last_message:
+        return "call_tool"  # 去工具节点
     return "end"  # 结束
 
 # ------------------------------
@@ -76,7 +71,7 @@ workflow.add_conditional_edges(
     }
 )
 
-# 工具节点执行完后，结束对话（避免无限循环）
+# 工具节点执行完后，结束对话（修改这里避免循环）
 workflow.add_edge("energy_cost_tool", END)
 
 # 编译图
@@ -86,10 +81,11 @@ graph = workflow.compile()
 # 5. 运行示例
 # ------------------------------
 if __name__ == "__main__":
+    print("=== Test 1: Message that should trigger tool ===")
     # 初始用户输入（对应图里的 human 消息）
     initial_state = {
         "messages": [
-            HumanMessage(content="what are solar panels? and how much can I save on electricity bills?")
+            HumanMessage(content="I want to know my electricity bill cost")
         ]
     }
 
@@ -99,3 +95,18 @@ if __name__ == "__main__":
             print(f"--- Node: {key} ---")
             for msg in value["messages"]:
                 print(f"{msg.type}: {msg.content}\n")
+    
+    print("\n=== Test 2: Message that should NOT trigger tool ===")
+    # Test with message that should not trigger the tool
+    initial_state2 = {
+        "messages": [
+            HumanMessage(content="What is the weather today?")
+        ]
+    }
+
+    # 执行图
+    for output in graph.stream(initial_state2):
+        for key, value in output.items():
+            print(f"--- Node: {key} ---")
+            for msg in value["messages"]:
+                print(f"{msg.type}: {msg.content[:100]}...\n" if len(msg.content) > 100 else f"{msg.type}: {msg.content}\n")

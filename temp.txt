@@ -1,0 +1,15 @@
+AI Agent
+What is an AI agent?
+An AI agent is a software-based ‘actor’ (entity) that uses an AI engine to take action. 
+It can distinguish its environment, process data, 
+and take actions on its own to achieve specific or singular goal. 
+AI agents operate independently and can interact with users, systems, or other agents.
+
+6 Essential Terms Every Agent Must Know!
+
+03 LangGraph: Building Stateful, Multi-Step Agent Flows
+
+
+
+反思器（ Reflection ）—— 
+Agent 大脑的 “元认知”，从执行结果中学习、纠错、优化策略，以实现自我修正与进化
